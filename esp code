@@ -2,9 +2,8 @@
 #include <WebServer.h>
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
-#include "MAX30105.h"
 
-// --- WiFi Setup ---
+// --- WiFi Configuration ---
 const char* ssid = "CHILD SAFETY";
 const char* password = "234555444";
 
@@ -14,58 +13,50 @@ IPAddress subnet(255, 255, 255, 0);
 
 WebServer server(80);
 Adafruit_MLX90614 mlx = Adafruit_MLX90614();
-MAX30105 particleSensor;
 
 // --- Pin Definitions ---
 #define BTN_DANGER 4   // Danger Button
-#define PIN_WATER  5   // Water Detection
-#define PIN_FIRE   23  // Fire Loop (3.3v to Pin)
-#define MIC_PIN    34  // Analog Microphone
+#define PIN_WATER  5   // Water Probes
+#define PIN_FIRE   23  // Fire Loop
 
 void handleRoot() {
   float bodyTemp = mlx.readObjectTempC();
-  int soundLevel = analogRead(MIC_PIN);
-  long heartIR = particleSensor.getIR(); // IR intensity for pulse detection
-  
-  String alert = "STATUS: STABLE";
-  String bgColor = "#1a1a1a";
+  String status = "SYSTEM STABLE";
+  String color = "#00FF00"; 
 
-  // Alert Logic
-  if (digitalRead(BTN_DANGER) == HIGH) { alert = "BABY IN DANGER!"; bgColor = "#400"; }
-  else if (digitalRead(PIN_WATER) == HIGH) { alert = "BABY UNDER WATER!"; bgColor = "#004"; }
-  else if (digitalRead(PIN_FIRE) == LOW) { alert = "BABY ON FIRE!"; bgColor = "#420"; }
-  else if (bodyTemp > 37.8) { alert = "HIGH FEVER ALERT!"; bgColor = "#500"; }
+  // Priority Alert Logic
+  if (digitalRead(BTN_DANGER) == HIGH) { 
+    status = "BABY IN DANGER!"; color = "#FF0000"; 
+  } else if (digitalRead(PIN_WATER) == HIGH) { 
+    status = "BABY UNDER WATER!"; color = "#0000FF"; 
+  } else if (digitalRead(PIN_FIRE) == LOW) { 
+    status = "BABY ON FIRE!"; color = "#FFA500"; 
+  } else if (bodyTemp > 37.8) {
+    status = "HIGH FEVER ALERT!"; color = "#FF4500";
+  }
 
-  // Dashboard HTML
+  // Web Interface
   String h = "<html><head><meta name='viewport' content='width=device-width, initial-scale=1'>";
-  h += "<style>body{background:" + bgColor + ";color:#0f0;font-family:sans-serif;text-align:center;padding:15px;}";
-  h += ".card{border:2px solid #333;padding:20px;border-radius:20px;background:rgba(0,0,0,0.8);}";
-  h += "h1{color:#fff;} .val{font-size:22px;color:#fff;} button{padding:15px;width:100%;background:#0f0;border:none;border-radius:10px;font-weight:bold;cursor:pointer;}</style></head><body>";
-  
-  h += "<div class='card'><h1>" + alert + "</h1><hr>";
-  h += "<p class='val'>Body Temp: " + String(bodyTemp) + " C</p>";
-  h += "<p class='val'>Heart IR: " + String(heartIR) + "</p>";
-  h += "<p class='val'>Sound Level: " + String(soundLevel) + "</p></div>";
-  
-  h += "<div class='card' style='margin-top:20px;'><h3>Bangla to English Translator</h3>";
-  h += "<button onclick='start()'>Listen to Bangla</button><p id='res' style='font-size:20px;color:#0f0;'></p></div>";
-  
-  h += "<script>function start(){const r=new(window.SpeechRecognition||window.webkitSpeechRecognition)();r.lang='bn-BD';r.start();";
-  h += "r.onresult=(e)=>{const m=e.results[0][0].transcript;fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=bn&tl=en&dt=t&q='+encodeURI(m))";
-  h += ".then(res=>res.json()).then(d=>{document.getElementById('res').innerText='English: '+d[0][0][0];});};}</script></body></html>";
+  h += "<style>body{background:#000;color:#fff;font-family:sans-serif;text-align:center;padding:20px;}";
+  h += ".card{border:2px solid #333;padding:30px;border-radius:25px;background:#111;}";
+  h += ".status{font-size:32px;font-weight:bold;color:" + color + ";margin:20px 0;}";
+  h += ".temp{font-size:24px;color:#0f0;}</style><meta http-equiv='refresh' content='2'></head><body>";
+  h += "<div class='card'><h1>Child Safety Monitor</h1><hr>";
+  h += "<div class='status'>" + status + "</div>";
+  h += "<p class='temp'>MLX90614 Temp: " + String(bodyTemp) + " &deg;C</p></div>";
+  h += "</body></html>";
   
   server.send(200, "text/html", h);
 }
 
 void setup() {
-  Serial.begin(115200);
-  Wire.begin(21, 22); // I2C SDA=21, SCL=22
+  // Communication with MLX90614 on Pin 21 (Data) and Pin 22 (Clock)
+  Wire.begin(21, 22); 
   mlx.begin();
-  particleSensor.begin(Wire, I2C_SPEED_STANDARD);
   
   pinMode(BTN_DANGER, INPUT_PULLDOWN);
   pinMode(PIN_WATER, INPUT_PULLDOWN);
-  pinMode(PIN_FIRE, INPUT_PULLUP); // Loop stays HIGH until broken
+  pinMode(PIN_FIRE, INPUT_PULLUP); 
 
   WiFi.softAP(ssid, password);
   WiFi.softAPConfig(local_IP, gateway, subnet);
@@ -73,4 +64,6 @@ void setup() {
   server.begin();
 }
 
-void loop() { server.handleClient(); }
+void loop() {
+  server.handleClient();
+}
