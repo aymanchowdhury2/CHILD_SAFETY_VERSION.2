@@ -1,33 +1,34 @@
 
 
-### 1. Full Connection Table
+### 1. Physical Connections
 
-
-
-| Component | ESP32 Pin | Connection Logic |
+| Component | ESP32 Pin Name | Connection Detail |
 | :--- | :--- | :--- |
-| **I2C SDA** | **Pin 21** | Connect to **SDA** on both MLX90614 and MAX30105. |
-| **I2C SCL** | **Pin 22** | Connect to **SCL** on both MLX90614 and MAX30105. |
-| **Danger Button** | **Pin 4** | One side to **Pin 4**, other side to **3.3V**. |
-| **Water Sensor** | **Pin 5** | Two wires placed near water; one to **Pin 5**, one to **3.3V**. |
-| **Fire Loop** | **Pin 23** | A wire jumping directly from **3.3V** to **Pin 23**. |
-| **Microphone** | **Pin 34** | Connect the **Out** pin of the mic to **Pin 34**. |
-| **Power (All)** | **3.3V & GND** | All sensors and buttons must share the ESP32’s 3.3V and GND. |
+| **MLX90614 (SDA)** | **Pin 21** | Connect the **Data (SDA)** pin of the sensor here. |
+| **MLX90614 (SCL)** | **Pin 22** | Connect the **Clock (SCL)** pin of the sensor here. |
+| **MLX90614 (VCC)** | **3.3V** | Power for the temperature sensor. |
+| **MLX90614 (GND)** | **GND** | Ground for the temperature sensor. |
+| **Danger Button** | **Pin 4** | Connect between **Pin 4** and **3.3V**. |
+| **Water Probes** | **Pin 5** | One wire to **Pin 5**, one wire to **3.3V**. |
+| **Fire Loop** | **Pin 23** | A wire loop running directly from **3.3V** to **Pin 23**. |
 
 ---
 
-### 2. How It Works
-1.  **Fixed Networking:** The ESP32 creates its own WiFi network. When you connect, it serves as a web host at `192.168.0.9`. 
-2.  **Safety Logic:**
-    * **Fire:** Uses a "Continuity Loop." If fire burns the wire, the 3.3V signal to Pin 23 is lost (LOW), triggering the alert.
-    * **Water:** Uses a "Bridge." Water conducts electricity between 3.3V and Pin 5 (HIGH) to trigger the alert.
-3.  **Biologicals:** The **I2C Hub** allows two sensors to talk over just two wires. The **MLX90614** reads heat without contact, and the **MAX30105** detects blood flow via IR light.
-4.  **Translation:** When you click "Listen" on the website, your phone's browser records Bangla speech and uses a Google API to display English text instantly.
+### 2. Short Description
+**Child Safety Monitor:** A physical hardware-based safety monitor that detects environmental emergencies via three dedicated digital triggers and tracks biological health using an **MLX90614** non-contact infrared temperature sensor.
 
 ---
 
-### 3. Short Description
-The **Child Safety Monitor** is an all-in-one IoT solution for caregivers. It uses an ESP32 to monitor physical hazards (Fire/Water) and biological health (Body Temperature/Heart Rate) in real-time. It features a built-in Bangla-to-English voice translator accessible via a permanent local IP address, ensuring safety and communication are always just one click away.
+### 3. How It Works
+* **MLX90614 Temperature Logic:** The sensor sends digital temperature data to **Pin 21** and **Pin 22**. If the baby's skin heat rises above 37.8°C, the dashboard triggers a **"FEVER ALERT."**
+* **Fire Logic:** Uses a "Dead-Man's Switch" loop. **Pin 23** must always receive 3.3V. If fire burns and breaks this wire, the signal is lost (LOW), triggering **"BABY ON FIRE."**
+* **Water Logic:** Uses conductivity. When water touches both probes, it connects 3.3V to **Pin 5** (HIGH), triggering **"UNDER WATER."**
+* **Danger Logic:** A manual override button. When pressed, it sends 3.3V to **Pin 4**, triggering **"BABY IN DANGER!"**
+* **Fixed IP Access:** The ESP32 creates its own WiFi. Once connected, you access the dashboard at **192.168.0.9**.
 
-**Output IP:** `192.168.0.9`  
-**WiFi:** `CHILD SAFETY` | **Pass:** `234555444`
+---
+
+### 4. Project Output Details
+* **WiFi Name:** `CHILD SAFETY`
+* **Password:** `234555444`
+* **Access URL:** `http://192.168.0.9`
