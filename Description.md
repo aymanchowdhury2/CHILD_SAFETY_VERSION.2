@@ -4,10 +4,6 @@
 
 | Component | ESP32 Pin Name | Connection Detail |
 | :--- | :--- | :--- |
-| **MLX90614 (SDA)** | **Pin 21** | Connect the **Data (SDA)** pin of the sensor here. |
-| **MLX90614 (SCL)** | **Pin 22** | Connect the **Clock (SCL)** pin of the sensor here. |
-| **MLX90614 (VCC)** | **3.3V** | Power for the temperature sensor. |
-| **MLX90614 (GND)** | **GND** | Ground for the temperature sensor. |
 | **Danger Button** | **Pin 4** | Connect between **Pin 4** and **3.3V**. |
 | **Water Probes** | **Pin 5** | One wire to **Pin 5**, one wire to **3.3V**. |
 | **Fire Loop** | **Pin 23** | A wire loop running directly from **3.3V** to **Pin 23**. |
